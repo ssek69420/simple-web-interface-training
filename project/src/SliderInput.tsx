@@ -1,39 +1,58 @@
 import { useState } from "react";
 
+type SliderInputProps = {
+  label: string;
+  name: string;
+  min: number;
+  max: number;
+  defaultValue: number;
+  step?: number;
+};
+
 export default function SliderInput({
-    label,
-    min,
-    max,
-    value,
-    step = 1
-}) {
+  label,
+  name,
+  min,
+  max,
+  defaultValue,
+  step = 1,
+}: SliderInputProps) {
+  const [value, setValue] = useState<string>(String(defaultValue));
 
-    const [val, setVal] = useState(value);
+  function handleRangeChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setValue(e.target.value);
+  }
 
-    return (
-        <div className="slider">
+  function handleNumberChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setValue(e.target.value);
+  }
 
-            <div className="sliderTop">
+  return (
+    <div className="slider" data-name={name}>
+      <div className="sliderTop">
+        <label htmlFor={`${name}-number`}>{label}</label>
 
-                <label>{label}</label>
+        <input
+          id={`${name}-number`}
+          name={name}
+          type="number"
+          min={min}
+          max={max}
+          step={step}
+          value={value}
+          onChange={handleNumberChange}
+        />
+      </div>
 
-                <input
-                    type="number"
-                    value={val}
-                    onChange={(e) => setVal(e.target.value)}
-                />
-
-            </div>
-
-            <input
-                type="range"
-                min={min}
-                max={max}
-                step={step}
-                value={val}
-                onChange={(e) => setVal(e.target.value)}
-            />
-
-        </div>
-    );
+      <input
+        id={`${name}-range`}
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={handleRangeChange}
+      />
+    </div>
+  );
 }

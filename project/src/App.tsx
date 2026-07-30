@@ -1,117 +1,183 @@
+import { useRef, useState } from "react";
 import SliderInput from "./SliderInput";
+import type { TrainingConfig } from './types.ts'
 
 export default function App() {
-    return (
-        <div className="app">
 
-            <aside className="sidebar">
+  const [consoleText, setConsoleText] = useState("Waiting for training...\n")
 
-                <h1>Model Trainer</h1>
 
-                <section className="group">
-                    <h2>Files</h2>
+  const formRef = useRef<HTMLFormElement | null>(null);
 
-                    <label>
-                        Dataset
-                        <input type="file" />
-                    </label>
+  async function handleStartTraining(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
 
-                    <label>
-                        Output Folder
-                        <input type="text" placeholder="Select folder..." />
-                    </label>
-                </section>
+    const form = formRef.current;
+    if (!form) return;
 
-                <section className="group">
-                    <h2>Training</h2>
+    const formData = new FormData(form);
 
-                    <SliderInput
-                        label="Epochs"
-                        min={1}
-                        max={100}
-                        value={4}
-                    />
+    const config: TrainingConfig = {
+      dataset: (formData.get("dataset") as File) ?? null,
+      output_dir: String(formData.get("output_dir") ?? ""),
+      epochs: Number(formData.get("epochs") ?? 0),
+      steps: Number(formData.get("steps") ?? 0),
+      batch_size: Number(formData.get("batch_size") ?? 0),
+      learning_rate: Number(formData.get("learning_rate") ?? 0),
+      save_every: Number(formData.get("save_every") ?? 0),
+      warmup: Number(formData.get("warmup") ?? 0),
+      seed: Number(formData.get("seed") ?? 0),
+      fp16: formData.get("fp16") === "on",
+      resume: formData.get("resume") === "on",
+      cache_dataset: formData.get("cache_dataset") === "on",
+      shuffle_dataset: formData.get("shuffle_dataset") === "on",
+    };
 
-                    <SliderInput
-                        label="Steps"
-                        min={1}
-                        max={5000}
-                        value={20}
-                    />
+    console.log("Training config:", config);
 
-                    <SliderInput
-                        label="Batch Size"
-                        min={1}
-                        max={64}
-                        value={8}
-                    />
+     try {
+        const response = await fetch("http://127.0.0.1:5000/train", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(config),
+        });
 
-                    <SliderInput
-                        label="Learning Rate"
-                        min={0.000001}
-                        max={0.01}
-                        step={0.000001}
-                        value={0.0001}
-                    />
+        if (!response.ok) {
+            throw new Error("Failed to start training");
+        }
 
-                    <SliderInput
-                        label="Save Every"
-                        min={50}
-                        max={5000}
-                        value={500}
-                    />
+        const result = await response.json();
+        setConsoleText(
+            `$ ${result.command.join(" ")}
+            ${result.stdout}
+            ${result.stderr}`
+        )
+    } catch (err) {
+        setConsoleText(            
+            `${err}`)
+    }
+  }
 
-                    <SliderInput
-                        label="Warmup"
-                        min={0}
-                        max={1000}
-                        value={100}
-                    />
-                </section>
+  return (
+    <div className="app">
+      <form ref={formRef} className="training-form" onSubmit={handleStartTraining}>
+        <aside className="sidebar">
+          <h1>Model Trainer</h1>
 
-                <section className="group">
+          <section className="group">
+            <h2>Files</h2>
 
-                    <label>
-                        <input type="checkbox" />
-                        Mixed Precision (FP16)
-                    </label>
+            <label className="field">
+              Dataset
+              <input type="file" name="dataset" />
+            </label>
 
-                    <label>
-                        <input type="checkbox" />
-                        Resume Training
-                    </label>
+            <label className="field">
+              Output Folder
+              <input
+                type="text"
+                name="output_dir"
+                placeholder="Select folder..."
+                defaultValue=""
+              />
+            </label>
+          </section>
 
-                    <label>
-                        <input type="checkbox" />
-                        Cache Dataset
-                    </label>
+          <section className="group">
+            <h2>Training</h2>
 
-                    <label>
-                        <input type="checkbox" />
-                        Shuffle Dataset
-                    </label>
+            <SliderInput
+              label="Epochs"
+              name="epochs"
+              min={1}
+              max={100}
+              defaultValue={4}
+            />
 
-                </section>
+            <SliderInput
+              label="Steps"
+              name="steps"
+              min={1}
+              max={5000}
+              defaultValue={20}
+            />
 
-                <button className="start">
-                    Start Training
-                </button>
+            <SliderInput
+              label="Batch Size"
+              name="batch_size"
+              min={1}
+              max={64}
+              defaultValue={8}
+            />
 
-            </aside>
+            <SliderInput
+              label="Learning Rate"
+              name="learning_rate"
+              min={0.000001}
+              max={0.01}
+              step={0.000001}
+              defaultValue={0.0001}
+            />
 
-            <main className="console">
+            <SliderInput
+              label="Save Every"
+              name="save_every"
+              min={50}
+              max={5000}
+              defaultValue={500}
+            />
 
-                <div className="consoleHeader">
-                    Console
-                </div>
+            <SliderInput
+              label="Warmup"
+              name="warmup"
+              min={0}
+              max={1000}
+              defaultValue={100}
+            />
 
-                <pre>
-{`Waiting for training...
-`}
-                </pre>
+            <SliderInput
+              label="Seed"
+              name="seed"
+              min={0}
+              max={999999}
+              defaultValue={42}
+            />
+          </section>
 
-            </main>
+          <section className="group">
+            <label className="check">
+              <input type="checkbox" name="fp16" />
+              Mixed Precision (FP16)
+            </label>
 
-        </div>
-    );
+            <label className="check">
+              <input type="checkbox" name="resume" />
+              Resume Training
+            </label>
+
+            <label className="check">
+              <input type="checkbox" name="cache_dataset" />
+              Cache Dataset
+            </label>
+
+            <label className="check">
+              <input type="checkbox" name="shuffle_dataset" defaultChecked />
+              Shuffle Dataset
+            </label>
+          </section>
+
+          <button className="start" type="submit">
+            Start Training
+          </button>
+        </aside>
+
+        <main className="console">
+          <div className="consoleHeader">Console</div>
+          <pre>{`${consoleText}`}</pre>
+        </main>
+      </form>
+    </div>
+  );
 }
