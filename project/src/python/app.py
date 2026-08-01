@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()
 #for communication with vite
 app.add_middleware(
+    #all of this is probably unsafe ngl
     CORSMiddleware,
     allow_origins=["*"],
     allow_methods=["*"],
