@@ -121,8 +121,7 @@
     border-radius: 6px;
     background: var(--social-bg);
     display: flex;
-    padding: 6px 12px;
-    align-items: center;
+   align-items: center;
     gap: 8px;
     text-decoration: none;
     transition: box-shadow 0.3s;
@@ -159,6 +158,12 @@
   @media (max-width: 1024px) {
     height: 48px;
   }
+}
+
+.prefixInput {
+  height: 150%;
+  width: 100%;
+  border: 3px solid red;
 }
 
 .ticks {

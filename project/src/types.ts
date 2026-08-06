@@ -1,15 +1,30 @@
-export type TrainingConfig = {
+export interface TrainingConfig {
+  model: string;
   dataset: File | null;
   output_dir: string;
-  epochs: number;
-  steps: number;
-  batch_size: number;
+  best_model_dir: string;
+  prefix: string;
+  input_column: string;
+  target_column: string;
+  max_input_length: number;
+  max_target_length: number;
+  test_size: number;
   learning_rate: number;
-  save_every: number;
-  warmup: number;
+  epochs: number;
+  train_batch_size: number;
+  eval_batch_size: number;
+  gradient_accumulation_steps: number;
+  weight_decay: number;
+  warmup_ratio: number;
+  logging_steps: number;
+  save_total_limit: number;
+  patience: number;
   seed: number;
+  max_train_samples: number;
+  max_eval_samples: number;
   fp16: boolean;
   resume: boolean;
   cache_dataset: boolean;
   shuffle_dataset: boolean;
+  skip_steps: boolean;
 };

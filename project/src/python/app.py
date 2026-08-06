@@ -25,9 +25,22 @@ def home():
 @app.post("/train")
 def train(config:dict):
     command = ["python", "train.py"]
+    
+    ignored = {
+    "skip_steps",
+    "fp16",
+    "resume",
+    "cache_dataset",
+    "shuffle_dataset",
+    }
 
     for key, value in config.items():
+        if key in ignored:
+            continue
+
         flag = "--" + key.replace("_", "-")
+        command.extend([flag, str(value)])   
+            
 
         if isinstance(value, bool):
             if value:
